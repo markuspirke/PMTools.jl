@@ -1,6 +1,6 @@
 # PMTools
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://xe91xote.pages.ecap.work/PMTools.jl/stable)
+<!-- [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://xe91xote.pages.ecap.work/PMTools.jl/stable) -->
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://xe91xote.pages.ecap.work/PMTools.jl/dev)
 [![Build Status](https://git.ecap.work/xe91xote/PMTools.jl/badges/main/pipeline.svg)](https://git.ecap.work/xe91xote/PMTools.jl/pipelines)
 [![Coverage](https://git.ecap.work/xe91xote/PMTools.jl/badges/main/coverage.svg)](https://git.ecap.work/xe91xote/PMTools.jl/commits/main)
