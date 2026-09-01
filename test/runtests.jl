@@ -1,3 +1,3 @@
 using Test
 
-include("misc.jl")
+include("charge_spectrum.jl")
