@@ -1,0 +1,111 @@
+variables:
+  JULIA_DEPOT_PATH: "$CI_PROJECT_DIR/.julia"
+
+
+cache:
+  # Cache the package sources, registries and artifacts but NOT the
+  # `compiled/` precompile cache: Julia patch-version changes in the
+  # docker image leave behind stale .ji files that brick stdlib loads
+  # (LibGit2 / Pkg / MbedTLS_jll). Letting Julia rebuild compiled/ on
+  # every run keeps the cache consistent at a small precompile cost.
+  paths:
+    - $JULIA_DEPOT_PATH/registries
+    - $JULIA_DEPOT_PATH/packages
+    - $JULIA_DEPOT_PATH/artifacts
+  key: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME-v2"
+
+
+stages:
+  - test
+  - docs
+  - deploy
+
+before_script:
+  - mkdir -p /root/.ssh && chmod 700 /root/.ssh
+  - cp "$JULIA_REGISTRY_KEY" /root/.ssh/id_rsa
+  - chmod 600 /root/.ssh/id_rsa
+  - echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBdRwAWoJQQXaE52/BexS0NHYvOJhioezPoez5REoY0i15iY64mg2DzJ3F69ZpqjUEegpFj0hgsrEx+6yz3hFU1frSQxqEk3127K9BNmK5PQuGMBATKfPFEQSvJjIdStprGwa5UVQVzAAlWjmUDU2v4P6yBSDO4bnWjRH1akbGwfaIN2TIP8jtipDqL+RXMNpvYGQoq26Ss2zqVtXJweUGPM3HzuEvkWNWPPvRaqYbLpxze+rK0FWBWqHp5l1y3VF5mrbt1AH55eAJBL7Upp2O72c/4YV6/xd/ufYycENDYRDBJibQwL02kGBHSCtN0GC266EmA7JbtIOCzrn9vpjb julia-ci-readonly" > /root/.ssh/id_rsa.pub
+  - |
+    cat > /root/.ssh/known_hosts <<'EOF'
+    git.ecap.work ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCjHYHXHvyqV0G/s2Zhpe1HbBfEKWJlQEL4A24FBfUiVEVjIDAoKLhNbcvaUNJHsEoLU6xugyTZsQOF7uW3mxdnkaFXxWc/moJjovnk/luNNeQAdo7zyJoKSKD9NWhkOgPHJwqqJEXMCadbnbS3psyLtwoSdtJeadKUqH5svs29ykMZyAHanqhRjNvey9ZClyhwXf/RpujFK6PMpqst7DmLfm2lDsA8BtJDyYLJxzf+gK8yhlP0renvwdJfTffIP5jZmLxfe8/s69t19mmhL/Z6zcESsRlifCL0j7CN3pBWA1929nbMXKwkKDsTw8vnkYkdW90/HgN3ZhHgPMOb/v+PNjks2h8rBSdtAxCBsWxeDmol36teT1q/rl38TsyJWtu4P7bGjMKevflhPzZCT/uQMgGGcIXX6C0DRdP1o2QFpsta7k4KVyf78xn22EyZ8qmPOK73J6Zh+3DE8BnBDj/uWtzaSMKhXNwrBYaDCKswH98wPG5yRULtrlmkMVRWC3s=
+    git.ecap.work ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBO3yGBgBEVvEGtZoU5qMBTuOXaN+6Xtjo/XG2A+dTncjCLaF0LpmTX9N8vYiIgsTOJmVMc1K0m5bq3ZqY/iLkw0=
+    git.ecap.work ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM9+DG53ZbD1bbQ0uDrXj6YXufUfLv3nDHnvONEtiS8p
+    EOF
+
+
+.script:
+  script:
+    - |
+      julia -e '
+        using Pkg
+        Pkg.update()
+        Pkg.Registry.add(RegistrySpec(url = "git@git.ecap.work:common/julia-registry.git"))'
+
+      julia --project=@. -e '
+        using Pkg
+        Pkg.instantiate()
+        Pkg.resolve()
+        Pkg.build()
+        Pkg.test(coverage=true)'
+
+.coverage:
+  coverage: /Test coverage (\d+\.\d+%)/
+  after_script:
+    - |
+      julia -e '
+        using Pkg
+        Pkg.update()
+        Pkg.Registry.add(RegistrySpec(url = "git@git.ecap.work:common/julia-registry.git"))
+        Pkg.add("Coverage")
+        using Coverage
+        c, t = get_summary(process_folder())
+        using Printf
+        @printf "Test coverage %.2f%%\n" 100c / t'
+
+Julia 1.9:
+  image: julia:1.9
+  stage: test
+  extends:
+    - .script
+    - .coverage
+
+Julia 1.10:
+  image: julia:1.10
+  stage: test
+  extends:
+    - .script
+    - .coverage
+
+Julia 1.11:
+  image: julia:1.11
+  stage: test
+  extends:
+    - .script
+    - .coverage
+
+Julia 1.12:
+  image: julia:1.11
+  stage: test
+  extends:
+    - .script
+    - .coverage
+
+docs:
+  image: julia:1.12
+  stage: docs
+  script:
+    - |
+      julia -e '
+        using Pkg
+        Pkg.update()
+        Pkg.Registry.add(RegistrySpec(url = "git@git.ecap.work:common/julia-registry.git"))'
+    - |
+      julia --project=docs -e '
+        using Pkg
+        Pkg.update()
+        Pkg.instantiate()
+        Pkg.resolve()
+        using Documenter: doctest
+        using PMTools
+        doctest(PMTools)
+        include("docs/make.jl")'
