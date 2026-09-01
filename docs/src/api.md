@@ -4,6 +4,14 @@
 ```@index
 ```
 
+
 ```@docs
-meaningoflife
+ExGaussian
+rand
+mean
+var
+std
+pdf
+cdf
+ChargeSpectrum
 ```
