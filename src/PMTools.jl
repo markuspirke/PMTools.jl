@@ -1,16 +1,14 @@
 module PMTools
 
-export meaningoflife
+import Distributions: pdf, cdf
+using Distributions
+import Statistics: mean
+using Statistics
+using Random
+using ArgCheck
 
-"""
-    meaningoflife()
+export ExGaussian, params, ChargeSpectrum, mean, var, std, pdf, cdf
 
-Determines the meaning of life without floating point precision.
-"""
-function meaningoflife()
-    a = 21
-    b = 2
-    return a * b
-end
+include("charge_spectrum.jl")
 
 end
