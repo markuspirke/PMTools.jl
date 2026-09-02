@@ -23,13 +23,22 @@ using Test
 end
 
 @testset "ChargeSpectrum" begin
-    λ, q₀, σ₀, w, c₀, μ, σ, kmax = 2.0, 1.0, 0.2, 0.3, 10.0, 5.0, 2.0, 10
-    charge_spectrum = ChargeSpectrum(λ, q₀, σ₀, w, c₀, μ, σ, kmax)
-    Qs = rand(charge_spectrum, 100_000)
+    λ, q₀, σ₀, w, c₀, μ, σ, kmax = 3.0, 1.0, 0.2, 0.3, 10.0, 5.0, 2.0, 10
+    cs = ChargeSpectrum(λ, q₀, σ₀, w, c₀, μ, σ, kmax)
+    Qs = rand(cs, 100_000)
+    A_pedestal = exp(-cs.λ) * 1/sqrt(2π)/cs.σ₀
 
-    @test 1.0 + 2.0*5.0 + 0.3/10.0 ≈ mean(charge_spectrum)
-    @test isapprox(mean(charge_spectrum), mean(Qs), rtol=0.1)
-    @test isapprox(var(charge_spectrum), var(Qs), rtol=0.1)
-    @test isapprox(cdf(charge_spectrum, 1e6), 1.0, rtol=1e-3)
-    @test isapprox(cdf(charge_spectrum, -1e2), 0.0, atol=1e-10)
+    @test 1.0 + 3.0*5.0 + 0.3/10.0 ≈ mean(cs)
+    @test isapprox(mean(cs), mean(Qs), rtol=0.1)
+    @test isapprox(var(cs), var(Qs), rtol=0.1)
+    @test isapprox(A_pedestal, pdf(cs, q₀ + w/c₀), rtol=0.1)
+    @test isapprox(cdf(cs, 1e6), 1.0, rtol=1e-3)
+    @test isapprox(cdf(cs, -1e2), 0.0, atol=1e-10)
+    @test isreal(rand(cs))
+    @test -Inf == minimum(cs)
+    @test Inf == maximum(cs)
+    @test insupport(cs, 10.0)
+    @test insupport(cs, -10.0)
+    @test isapprox(quantile(Qs, 0.5), quantile(cs, 0.5), rtol=0.1)
+
 end
