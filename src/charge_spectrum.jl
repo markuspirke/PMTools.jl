@@ -239,6 +239,40 @@ Standard deviation of the charge spectrum, `sqrt(var(d))`.
 Statistics.std(d::ChargeSpectrum) = sqrt(var(d))
 
 """
+    minimum(d::ChargeSpectrum)
+
+Theoretical minimal value of the charge spectrum is returned.
+"""
+Base.minimum(d::ChargeSpectrum) = -Inf
+
+"""
+    maximum(d::ChargeSpectrum)
+
+Theoretical maximal value of the charge spectrum is returned.
+"""
+Base.maximum(d::ChargeSpectrum) = Inf
+
+"""
+    insupport(d::ChargeSpectrum, x::Real)
+
+Checks whether the distribution is defined for a given number.
+"""
+Distributions.insupport(d::ChargeSpectrum, x::Real) = minimum(d) <= x <= maximum(d)
+
+"""
+    quantile(d::ChargeSpectrum, x::Real)
+
+Returns the x-quantile of the charge spectrum.
+As there is no analyitcal inverse of the cdf, this is estimated
+numerically based on `Distributions.quantile_bisect`.
+"""
+function Distributions.quantile(d::ChargeSpectrum, x::Real)
+    xlow = d.kmax * d.μ - 5.0 * d.kmax * d.σ
+    xhigh = d.kmax * d.μ + 5.0 * d.kmax * d.σ
+    Distributions.quantile_bisect(d, x, xlow, xhigh)
+end
+
+"""
     pdf(d::ChargeSpectrum, x::Real)
 
 Probability density of the charge spectrum at `x`, evaluated as the Poisson-weighted sum
@@ -269,7 +303,6 @@ function Distributions.pdf(d::ChargeSpectrum, x::Real)
         Ek = ExGaussian(μk, σk, c₀)
 
         y += pk * ((1 - w) * pdf(Nk, x) + w * pdf(Ek, x))
-        @show pk, pdf(Nk, x), pdf(Ek, x)
     end
 
     return y
@@ -310,6 +343,16 @@ sampled first, which fixes `μₖ = q₀ + k·μ` and `σₖ = sqrt(σ₀² + k�
 `w` a dark pulse is added and the sample is drawn from `ExGaussian(μₖ, σₖ, c₀)`, otherwise
 from `Normal(μₖ, σₖ)`.  Unlike [`pdf`](@ref) and [`cdf`](@ref) this is not truncated at
 `kmax`.
+
+# Example
+
+```julia
+julia> λ, q₀, σ₀, w, c₀, μ, σ, kmax = 3.0, 1.0, 0.2, 0.3, 10.0, 5.0, 2.0, 10
+julia> charge_spectrum = ChargeSpectrum(λ, q₀, σ₀, w, c₀, μ, σ, kmax)
+
+julia> rand(charge_spectrum)
+julia> rand(charge_spectrum, 100)
+```
 """
 function Random.rand(rng::AbstractRNG, d::ChargeSpectrum)
     λ, q₀, σ₀, w, c₀, μ, σ, kmax = params(d)
