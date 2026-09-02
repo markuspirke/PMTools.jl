@@ -7,6 +7,7 @@ using Test
 
     emg = PMTools.ExGaussian(μ, σ, c)
     xs = rand(emg, 100_000)
+    @test (μ, σ, c) == params(emg)
     @test 0.1 ≈ mean(emg)
     @test 1.01 ≈ var(emg)
     @test sqrt(1.01) ≈ std(emg)
@@ -28,6 +29,7 @@ end
     Qs = rand(cs, 100_000)
     A_pedestal = exp(-cs.λ) * 1/sqrt(2π)/cs.σ₀
 
+    @test (λ, q₀, σ₀, w, c₀, μ, σ, kmax) == params(cs)
     @test 1.0 + 3.0*5.0 + 0.3/10.0 ≈ mean(cs)
     @test isapprox(mean(cs), mean(Qs), rtol=0.1)
     @test isapprox(var(cs), var(Qs), rtol=0.1)
