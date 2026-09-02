@@ -14,7 +14,7 @@ makedocs(;
     pages = [
         "Home" => "index.md",
         "Examples" => Any[
-            "examples/an_example.md",
+            "examples/charge_spectrum.md",
         ],
         "API" => "api.md"
     ],
