@@ -267,9 +267,16 @@ As there is no analyitcal inverse of the cdf, this is estimated
 numerically based on `Distributions.quantile_bisect`.
 """
 function Distributions.quantile(d::ChargeSpectrum, x::Real)
-    xlow = d.kmax * d.μ - 5.0 * d.kmax * d.σ
-    xhigh = d.kmax * d.μ + 5.0 * d.kmax * d.σ
-    Distributions.quantile_bisect(d, x, xlow, xhigh)
+    # xlow = d.kmax * d.μ - 5.0 * d.kmax * d.σ
+    # xhigh = d.kmax * d.μ + 5.0 * d.kmax * d.σ
+    # @show xlow, xhigh
+    # Distributions.quantile_bisect(d, x, xlow, xhigh)
+    #
+    # y = d.q₀ # this should be mode(d)
+    # return Distributions.quantile_newton(d, x, y)
+    qs = rand(d, 1_000_000)
+
+    return quantile(qs, x)
 end
 
 """
