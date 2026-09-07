@@ -7,15 +7,14 @@ import Statistics: mean, var, std, quantile
 using Statistics
 using Random
 using ArgCheck
+import NativeMinuit: BinnedNLL
+using NativeMinuit
+using StatsBase
 
 export ExGaussian, params, ChargeSpectrum, mean, var, std, pdf, cdf, insupport, quantile
-
-# For the plotting extension
-export chargespectrumplot, chargespectrumplot!
-
-function chargespectrumplot end
-function chargespectrumplot! end
+export BinnedNLL, goodness_of_fit
 
 include("charge_spectrum.jl")
+include("fit.jl")
 
 end
