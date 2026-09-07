@@ -15,6 +15,7 @@ makedocs(;
         "Home" => "index.md",
         "Examples" => Any[
             "examples/charge_spectrum.md",
+            "examples/fitting.md",
         ],
         "API" => "api.md"
     ],
