@@ -14,6 +14,7 @@ using StatsBase
 export ExGaussian, params, ChargeSpectrum, mean, var, std, pdf, cdf, insupport, quantile
 export BinnedNLL, goodness_of_fit
 
+include("utils.jl")
 include("charge_spectrum.jl")
 include("fit.jl")
 
